@@ -1,3 +1,5 @@
+module;
+
 #include <Windows.h>
 #include <Psapi.h>
 
@@ -9,7 +11,7 @@ import <stdexcept>;
 import byte_utils;
 import file_utils;
 
-export bool is_process_exist(const std::string& process_path) {
+export bool is_process_exist(const tstring& process_path) {
 	DWORD dwProcessIds[1024];
 	DWORD dwCpNeeded;
 	if (!EnumProcesses(dwProcessIds, sizeof(dwProcessIds), &dwCpNeeded)) {
@@ -36,7 +38,7 @@ export bool is_process_exist(const std::string& process_path) {
 		TCHAR szImageFileName[MAX_PATH] = TEXT("<unknown>");
 		GetProcessImageFileName(hProcess, szImageFileName, sizeof(szImageFileName));
 
-		std::string image_file_path = str_from_tchar(szImageFileName);
+		tstring image_file_path = szImageFileName;
 		if (basename(process_path) == basename(image_file_path)) {
 			CloseHandle(hProcess);
 			return true;
@@ -45,22 +47,14 @@ export bool is_process_exist(const std::string& process_path) {
 	return false;
 }
 
-export PROCESS_INFORMATION create_process(const std::string& process_path) {
+export PROCESS_INFORMATION create_process(const tstring& process_path) {
 	STARTUPINFO si;
 	PROCESS_INFORMATION pi;
-	TCHAR process_path_tchar[MAX_PATH];
-	size_t process_path_tchar_size;
-
-	process_path_tchar_size = tchar_from_str(
-		process_path,
-		process_path_tchar,
-		sizeof(process_path_tchar) / sizeof(TCHAR)
-	);
 
 	ZeroMemory(&si, sizeof(si));
 	ZeroMemory(&pi, sizeof(pi));
 	if (!CreateProcess(
-		process_path_tchar,
+		process_path.c_str(),
 		NULL,
 		NULL,
 		NULL,

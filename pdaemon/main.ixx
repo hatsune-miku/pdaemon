@@ -1,22 +1,32 @@
+#include <Windows.h>
+
 import <format>;
-import <iostream>;
 import <string>;
 
 import daemon;
+import byte_utils;
 
-void usage() noexcept {
-	std::cerr << std::format("Usage: {} <process-path>", "pdaemon")
-		<< std::endl;
+void usage() {
+	MessageBox(NULL, TEXT("Usage: pdaemon <process-path>"), TEXT("pdaemon"), MB_OK);
 }
 
-int main(int argc, const char* argv[]) {
-	if (argc != 2) {
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+	UNREFERENCED_PARAMETER(hInstance);
+	UNREFERENCED_PARAMETER(hPrevInstance);
+	UNREFERENCED_PARAMETER(lpCmdLine);
+	UNREFERENCED_PARAMETER(nCmdShow);
+
+	LPTSTR* szArgList;
+	int argCount;
+
+	szArgList = CommandLineToArgvW(GetCommandLineW(), &argCount);
+	if (szArgList == NULL || argCount != 2) {
 		usage();
-		return 1;
+		return 0;
 	}
 
 	auto context = DaemonContext{
-		.process_path = argv[1]
+		.process_path = szArgList[1],
 	};
 	worker(context);
 	return 0;

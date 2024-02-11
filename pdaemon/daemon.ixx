@@ -1,3 +1,5 @@
+module;
+
 #include <Windows.h>
 
 export module daemon;
@@ -10,7 +12,7 @@ import byte_utils;
 import ps_utils;
 
 export struct DaemonContext {
-	std::string process_path;
+	tstring process_path;
 };
 
 export inline void msleep(DWORD dwMilliseconds) {
@@ -27,7 +29,7 @@ export void worker(const DaemonContext& context) noexcept {
 			}
 		}
 		catch (const std::exception& e) {
-			std::cerr << e.what() << std::endl;
+			std::clog << e.what() << std::endl;
 		}
 	}
 }
