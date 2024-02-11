@@ -26,7 +26,7 @@ export void worker(const DaemonContext& context) noexcept {
 				create_process(context.process_path);
 			}
 		}
-		catch (const std::exception e) {
+		catch (const std::exception& e) {
 			std::cerr << e.what() << std::endl;
 		}
 	}
