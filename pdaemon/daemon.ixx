@@ -15,6 +15,7 @@ import taskschd_utils;
 
 export struct DaemonContext {
 	tstring process_path;
+	tstring command_line;
 };
 
 export inline void msleep(DWORD dwMilliseconds) noexcept {
@@ -91,7 +92,7 @@ export void worker(HINSTANCE hInstance, const DaemonContext& context) noexcept {
 	);
 
 	while (true) {
-		auto pi = create_process(context.process_path);
+		auto pi = create_process(context.process_path, context.command_line);
 		if (pi.hProcess == nullptr) {
 			MessageBoxA(nullptr, "Failed to create process", "Error", MB_ICONERROR);
 			break;

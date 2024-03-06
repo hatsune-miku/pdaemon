@@ -226,13 +226,11 @@ LPWSTR SG_InputBox::GetString(LPCTSTR szCaption, LPCTSTR szPrompt, LPCTSTR szDef
 	GetWindowRect(hWnd, &r);
 
 	HINSTANCE hInst = GetModuleHandle(NULL);
-
 	WNDCLASSEX wcex;
 
 	if (!GetClassInfoEx(hInst, CLASSNAME, &wcex))
 	{
 		wcex.cbSize = sizeof(WNDCLASSEX);
-
 		wcex.style = CS_HREDRAW | CS_VREDRAW;
 		wcex.lpfnWndProc = (WNDPROC)WndProc;
 		wcex.cbClsExtra = 0;

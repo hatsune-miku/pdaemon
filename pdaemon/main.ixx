@@ -45,15 +45,22 @@ int dispatch_mktask(tstring self_path, LPTSTR* szArgList) {
 	return SUCCEEDED(hr) ? 0 : 1;
 }
 
-int dispatch_mktask_interactive(tstring self_path, LPTSTR* szArgList) {
-	self_path = self_path.erase(self_path.find(EXT_MKTASK), EXT_MKTASK.length());
-	HRESULT hr = mktask(self_path, szArgList[1]);
 
-	SG_InputBox::GetString(
+#ifdef _DEBUG
+int dispatch_mktask_interactive(tstring self_path, tstring target) {
+	HRESULT hr = mktask(self_path, target);
+#else
+int dispatch_mktask_interactive(tstring self_path, LPTSTR* szArgList) {
+	self_path = self_path.erase(self_path.find(EXT_MKTASK_INTERACTIVE), EXT_MKTASK_INTERACTIVE.length());
+
+	tstring additional_commandlines = SG_InputBox::GetString(
 		TEXT("pdaemon"),
-		TEXT("Task created successfully."),
-		TEXT("OK")
+		TEXT("Please enter additional command line, if any."),
+		TEXT("")
 	);
+
+	HRESULT hr = mktask(self_path, szArgList[1], additional_commandlines);
+#endif
 
 	if (SUCCEEDED(hr)) {
 		MessageBox(
@@ -76,9 +83,18 @@ int dispatch_mktask_interactive(tstring self_path, LPTSTR* szArgList) {
 	return SUCCEEDED(hr) ? 0 : 1;
 }
 
-int dispatch_daemon(HINSTANCE hInstance, LPTSTR* szArgList) {
+int dispatch_daemon(HINSTANCE hInstance, int argCount, LPTSTR* szArgList) {
+	tstring pd_path = szArgList[1];
+	tstring command_line{};
+
+	for (int i = 2; i < argCount; i++) {
+		command_line += szArgList[i];
+		command_line += TEXT(" ");
+	}
+
 	auto context = DaemonContext{
-			.process_path = szArgList[1],
+			.process_path = pd_path,
+			.command_line = command_line
 	};
 	worker(hInstance, context);
 	return 0;
@@ -97,12 +113,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 #ifdef _DEBUG
 	tstring self_path = szArgList[0];
-	return mktask(
+	return dispatch_mktask_interactive(
 		self_path, TEXT("C:\\Windows\\System32\\notepad.exe")
-	) ? 0 : 1;
+	);
 
 #else
-	if (szArgList == NULL || argCount != 2) {
+	if (szArgList == NULL || argCount <= 1) {
 		usage();
 		return 0;
 	}
@@ -112,14 +128,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (self_path.contains(EXT_MKLNK)) {
 		return dispatch_mklnk(self_path, szArgList);
 	}
-	else if (self_path.contains(EXT_MKTASK)) {
-		return dispatch_mktask(self_path, szArgList);
-	}
 	else if (self_path.contains(EXT_MKTASK_INTERACTIVE)) {
 		return dispatch_mktask_interactive(self_path, szArgList);
 	}
+	else if (self_path.contains(EXT_MKTASK)) {
+		return dispatch_mktask(self_path, szArgList);
+	}
 	else {
-		return dispatch_daemon(hInstance, szArgList);
+		return dispatch_daemon(hInstance, argCount, szArgList);
 	}
 #endif
 }
